@@ -1,9 +1,12 @@
-import requests
-import spotipy
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import requests, os
 import pandas as pd
 import sqlalchemy
 from sqlalchemy import create_engine
-import os
+import matplotlib
+import matplotlib.pyplot as plt
 
 
 CLIENT_ID = '19c1eccd1f02498faad82917e19d5042'
@@ -24,9 +27,9 @@ data2 = {'grant_type': 'client_credentials', 'client_id': CLIENT_ID, 'client_sec
 def getResponse(url,data):
   auth_response = requests.post(url, data)
   auth_response_data = auth_response.json()
-  print(auth_response.status_code)
+ # print(auth_response.status_code)
   access_token = auth_response_data['access_token']
-  print(access_token)
+  #print(access_token)
   headers = {
         'Authorization': 'Bearer {token}'.format(token=access_token)
   }
@@ -58,3 +61,9 @@ os.system('mysql -u root -pcodio -e "CREATE DATABASE IF NOT EXISTS tester; "')
 os.system("mysqldump -u root -pcodio tester > post.py")
 os.system("mysql -u root -pcodio tester < post.py")
 #df.to_sql('albums', con=engine, if_exists='replace', index=False)
+
+def createBarChart(df,x,y):
+  chart = df.plot.bar(x=x, y =y)
+  plt.show()
+
+createBarChart(df,'Album Title', 'Number of Tracks')
