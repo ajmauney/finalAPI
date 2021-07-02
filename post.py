@@ -9,13 +9,6 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 
-CLIENT_ID = '19c1eccd1f02498faad82917e19d5042'
-CLIENT_SECRET = 'be9c7e5056fc460cb1d2af8d121efce3'
-auth_url = 'https://accounts.spotify.com/api/token'
-BASE_URL = 'https://api.spotify.com/v1/'
-artist_id = '28AyklUmMECPwdfo8NEsV0'
-data2 = {'grant_type': 'client_credentials', 'client_id': CLIENT_ID, 'client_secret': CLIENT_SECRET}
-
 #post throws no errors
 #url valid
 #data valid
@@ -35,8 +28,6 @@ def getResponse(url,data):
   }
   return headers
 
-header = getResponse(auth_url,data2)
-
 #valid url
 #valid artist id
 #valid header
@@ -52,18 +43,35 @@ def fillDict(url,artist,header):
     sample.append([album['name'], album['total_tracks']])
   return sample
 
+def createBarChart(df,x,y):
+  chart = df.plot.bar(x=x, y =y)
+  plt.show()
+
+def biggestAlbums(dataframe,numAlbums):
+  print('The biggest ' , str(numAlbums), ' albums: ')
+  dataframe.sort_values(by='Number of Tracks', inplace = True, ascending = False)
+  for i in range (0,numAlbums):
+    print('#', str(i+1), ' is ', dataframe.iloc[i,0], ' with ', dataframe.iloc[i,1], ' songs')
+    
+    
+#def main():
+CLIENT_ID = '19c1eccd1f02498faad82917e19d5042'
+CLIENT_SECRET = 'be9c7e5056fc460cb1d2af8d121efce3'
+auth_url = 'https://accounts.spotify.com/api/token'
+BASE_URL = 'https://api.spotify.com/v1/'
+print('Enter an Artist ID: ')
+artist_id = input()
+data2 = {'grant_type': 'client_credentials', 'client_id': CLIENT_ID, 'client_secret': CLIENT_SECRET}
+header = getResponse(auth_url,data2)
 dict1 = fillDict(BASE_URL,artist_id,header)
 #print(dict1)
 column_names = ['Album Title', 'Number of Tracks']
 df = pd.DataFrame(dict1, columns = column_names)
 os.system('mysql -u root -pcodio -e "CREATE DATABASE IF NOT EXISTS tester; "')
-#engine = create_engine('mysql://root:codio@localhost/tester')
+engine = create_engine('mysql://root:codio@localhost/tester')
 os.system("mysqldump -u root -pcodio tester > post.py")
 os.system("mysql -u root -pcodio tester < post.py")
-#df.to_sql('albums', con=engine, if_exists='replace', index=False)
-
-def createBarChart(df,x,y):
-  chart = df.plot.bar(x=x, y =y)
-  plt.show()
-
-createBarChart(df,'Album Title', 'Number of Tracks')
+df.to_sql('albums', con=engine, if_exists='replace', index=False)
+#createBarChart(df,'Album Title', 'Number of Tracks')
+print('Mean Number of tracks: ',df["Number of Tracks"].mean())
+biggestAlbums(df,5)
