@@ -3,13 +3,14 @@ import spotipy
 import pandas as pd
 import sqlalchemy
 from sqlalchemy import create_engine
+import os
 
 
 CLIENT_ID = '19c1eccd1f02498faad82917e19d5042'
 CLIENT_SECRET = 'be9c7e5056fc460cb1d2af8d121efce3'
 auth_url = 'https://accounts.spotify.com/api/token'
 BASE_URL = 'https://api.spotify.com/v1/'
-artist_id = '7dGJo4pcD2V6oG8kP0tJRR'
+artist_id = '28AyklUmMECPwdfo8NEsV0'
 data2 = {'grant_type': 'client_credentials', 'client_id': CLIENT_ID, 'client_secret': CLIENT_SECRET}
 
 #post throws no errors
@@ -41,16 +42,19 @@ header = getResponse(auth_url,data2)
 def fillDict(url,artist,header):
   r = requests.get(url + 'artists/' + artist + '/albums', headers = header)
   d = r.json()
-  sample = {}
-  i = 0
+  sample = []
+  
   for album in d['items']:
-    #print(album['name'], '---', album['total_tracks'])
-    #sample[album['name']] = album['total_tracks']
-    sample[i] = [i, album['name'], album['total_tracks']]
-    i+=1
+    #fill sample list with the key as name and the value as the num tracks
+    sample.append([album['name'], album['total_tracks']])
   return sample
 
 dict1 = fillDict(BASE_URL,artist_id,header)
-df = pd.DataFrame.from_dict(dict1, orient = 'index')
-engine = create_engine('mysql://root:codio@localhost/tester')
-df.to_sql('albums', con=engine, if_exists='replace', index=False)
+#print(dict1)
+column_names = ['Album Title', 'Number of Tracks']
+df = pd.DataFrame(dict1, columns = column_names)
+os.system('mysql -u root -pcodio -e "CREATE DATABASE IF NOT EXISTS tester; "')
+#engine = create_engine('mysql://root:codio@localhost/tester')
+os.system("mysqldump -u root -pcodio tester > post.py")
+os.system("mysql -u root -pcodio tester < post.py")
+#df.to_sql('albums', con=engine, if_exists='replace', index=False)
